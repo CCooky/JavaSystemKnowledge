@@ -243,7 +243,7 @@ a += b;//输出a为byte类型，而不是int。因为他相当于a = (byte)(a + 
 
 <img src="images/11.png" alt="11" style="zoom:80%;" />
 
-​															**&、|无论什么情况，左右两边都会执行**，而加上了短路的就有一个不满足就结束了
+**&、|无论什么情况，左右两边都会执行**，而加上了短路的就有一个不满足就结束了
 
 <img src="images/12.png" alt="12" style="zoom:80%;" />
 
@@ -539,6 +539,12 @@ Lambda表达式的简化格式：参数类型可省略不写
 ```
 
 ```java
+@FunctionalInterface // 函数式接口，只能有一个抽象方法
+interface Swimming{
+    void swim();
+}
+
+
 //main
 public static void main(String[] args) {
 //正常匿名内部类写法
@@ -564,6 +570,8 @@ public static void main(String[] args) {
 **终极简化规则**
 
 - 如果**只有一个参数**，形参列表的括号 (   )也可以省略。
+
+  无参数时，必须要用一对空括号来表示
 
   ```java
   lists.forEach(s->{
@@ -598,7 +606,25 @@ public static void main(String[] args) {
 
 ## 16、Collection遍历方式
 
-注意哦：遍历是将集合里面的值拷贝给另外一个变量，变量的值发生改变了和集合内部元素无关系啊！
+在 Java 集合的遍历中，如果你是遍历集合的引用类型元素，那么遍历时获取的是元素引用的拷贝，而不是元素本身的拷贝。这意味着，通过这些引用对元素进行的修改，实际上是直接影响到了集合中的元素。
+
+举个例子：
+
+```java
+List<PreparationWorkVO> workList = new ArrayList<>();
+// 假设workList已经被初始化并添加了元素
+
+for(PreparationWorkVO work : workList) {
+    work.setWorkStatus(StatusEnum.FINISHED); // 直接修改了集合中的元素
+}
+```
+
+总结：
+
+- 对于引用类型的集合元素，遍历时获取的是元素引用的拷贝，通过这些引用对元素进行的修改会直接影响到集合中的元素。
+- 对于基本数据类型的集合元素（或者说包装类型，因为集合不能直接存储基本类型），遍历时获取的确实是值的拷贝，这时对拷贝的值进行修改不会影响到集合中的元素。
+
+
 
 ### 方式一：迭代器(遍历、删除)
 
@@ -636,7 +662,7 @@ while(it.hasNext()){
 
 
 
-### 方式二：增强for循环ForEach(遍历)
+### 方式二：增强for循环ForEach(遍历，无删除)
 
 jdk5出现的，内部原理就是一个迭代器，相当于是迭代器遍历集合的简化写法（编译时会增强for变成迭代器的写法遍历）。
 
@@ -660,7 +686,7 @@ jdk5出现的，内部原理就是一个迭代器，相当于是迭代器遍历�
 
 
 
-### 方式三：lambda表达式(遍历)
+### 方式三：lambda表达式(遍历，无删除)
 
 JDK8开始的，更简单，更直接的遍历集合！！！底层是forEach
 
@@ -1072,7 +1098,7 @@ Java泛型是一种编程语言的特性，它允许类、接口和方法在定�
 
 **目的：用于简化集合和数组操作的API。**
 
-​			在Stream流中无法直接修改集合、数组中的数据。
+​	==在Stream流中可以直接修改集合、数组中的数据，要看是引用类型，还是基本数据类型。==
 
 **Stream流的三类方法**
 
@@ -1146,17 +1172,17 @@ Stream<String> stream = Arrays.stream(name);
 
 也叫做是：中间方法。
 
-| 名称                                                         | 说明                                           |
-| ------------------------------------------------------------ | ---------------------------------------------- |
-| Stream<T> **filter(Predicate<? super T> predicate)**         | 用于对流中的数据进行**过滤。**                 |
-| Stream<T> **limit(long maxSize)**                            | 获取前几个元素                                 |
-| Stream<T> **skip(long n)**                                   | 跳过前几个元素                                 |
-| Stream<T> **distinct()**                                     | 去除流中重复的元素。依赖(hashCode和equals方法) |
-| static <T> Stream<T> **concat(Stream a, Stream b)**          | **合并**a和b两个流为一个流                     |
-| long **count();**                                            | 返回当前stream里面的元素个数                   |
-| void **forEach(Consumer<? super T> action);**                | 对当前Stream流里面的元素进行遍历。             |
-| <R> Stream<R> **map(Function<? super T, ? extends R> mapper);** | Map加工方法，对每个元素进行操作，看下面的使用  |
-| Object[ ] **toArray();**                                     | 将stream流编程一个对象数组，返回Object数组     |
+| 名称                                                         | 说明                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+|                                                              |                                                              |
+| Stream<T> **limit(long maxSize)**                            | 获取前几个元素                                               |
+| Stream<T> **skip(long n)**                                   | 跳过前几个元素                                               |
+| Stream<T> **distinct()**                                     | 去除流中重复的元素。依赖(hashCode和equals方法)               |
+| static <T> Stream<T> **concat(Stream a, Stream b)**          | **合并**a和b两个流为一个流                                   |
+| long **count();**                                            | 返回当前stream里面的元素个数                                 |
+| void **forEach(Consumer<? super T> action);**                | 对当前Stream流里面的元素进行遍历。                           |
+| <R> Stream<R> **map(Function<? super T, ? extends R> mapper);** | Map加工方法，对每个元素进行操作；                            |
+| Stream<T> **filter(Predicate<? super T> predicate)**         | 用于对流中的数据进行过滤。用Lambda表达式，使用的比较频繁，传入一个方法，返回值为boolean，true时为保留该集合中的元素，false时为丢弃。 |
 
 ```java
         List<String> lists = new ArrayList<>();
@@ -1174,7 +1200,15 @@ lists.stream().filter(s -> s.startsWith("张")).forEach(s -> System.out.println(
 //map加工方法，给每个元素前面加一个黑马字符串
 lists.stream().map(s -> "黑马"+s).forEach(s -> System.out.println(s));
 
+    List<Long> channelPoiIdList = singlePreparationVOList.stream()
+            .filter(vo -> vo.getPoiInfo().channelPoiCodeReady())
+            .flatMap(vo -> Stream.of(vo.getPoiInfo().getWaimaiChannelPoiCode(), vo.getPoiInfo().getWemallChannelPoiCode()))
+            .map(Long::valueOf)
+            .collect(Collectors.toList());
+
 ```
+
+
 
 ### Stream终结方法
 
@@ -1884,7 +1918,7 @@ public class MybatisUtil {
 
 
 
-##29、 注解
+## 29、 注解
 
 **概述：**
 
@@ -2304,12 +2338,13 @@ public class Controller {
 - ​    **Ctrl + H**——查看接口的实现类
 - ​    **Ctrl + O**，展示出Object中可以重写的方法！！！
 - ​    **Ctrl+Alt+V**——自动补全代码
-- ​    **Crtl + R** ——搜索替换。类似于windows的Crtl F，但是它增强了一个替换功能，可以用于**所有字段**
 - ​    **Alt + 7**——查看类中的方法 
 - ​    **ALT + 鼠标左键**——可以按照列的方向整列选择，并统一编辑成输入内容
 - ​	for 循环的快速操作：arr是我们定义的数组，arr.for i 就可以直接遍历arr数组所有元素。即 " **变量名.for i** "
 - ​    增强for——即 " **变量名.for**"
-- ​    **Crtl+Shift+r**——全局搜索
+- ​    **Crtl+Shift+F**——全局搜索，R是替换。
+
+
 
 
 一键生成类中的有参构造器和Getter、Setter方法：
